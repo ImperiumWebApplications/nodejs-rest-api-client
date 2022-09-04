@@ -5,6 +5,7 @@ import './Post.css';
 
 const post = props => (
   <article className="post">
+    {console.log(props.id)}
     <header className="post__header">
       <h3 className="post__meta">
         Posted by {props.author} on {props.date}

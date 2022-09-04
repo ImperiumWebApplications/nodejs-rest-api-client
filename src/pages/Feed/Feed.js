@@ -111,17 +111,17 @@ class Feed extends Component {
     if (this.state.editPost) {
       url = "URL";
     }
+    const formData = new FormData();
+    formData.append("title", postData.title);
+    formData.append("content", postData.content);
+    formData.append("image", postData.image);
 
     fetch(url, {
       method: method,
       headers: {
-        "Content-Type": "application/json",
         Authorization: "Bearer " + this.props.token,
       },
-      body: JSON.stringify({
-        title: postData.title,
-        content: postData.content,
-      }),
+      body: formData,
     })
       .then((res) => {
         if (res.status !== 200 && res.status !== 201) {
@@ -137,6 +137,7 @@ class Feed extends Component {
           creator: resData.post.creator,
           createdAt: resData.post.createdAt,
         };
+        console.log('post', post);
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
           if (prevState.editPost) {
