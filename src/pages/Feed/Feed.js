@@ -109,12 +109,14 @@ class Feed extends Component {
     let url = "http://localhost:8080/feed/posts";
     let method = "POST";
     if (this.state.editPost) {
-      url = "URL";
+      url = "http://localhost:8080/feed/post/" + this.state.editPost._id;
+      method = "PUT";
     }
     const formData = new FormData();
     formData.append("title", postData.title);
     formData.append("content", postData.content);
     formData.append("image", postData.image);
+    // console.log(postData)
 
     fetch(url, {
       method: method,
@@ -137,7 +139,6 @@ class Feed extends Component {
           creator: resData.post.creator,
           createdAt: resData.post.createdAt,
         };
-        console.log('post', post);
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
           if (prevState.editPost) {

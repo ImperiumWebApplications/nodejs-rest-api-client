@@ -86,6 +86,7 @@ class FeedEdit extends Component {
           value: files ? files[0] : value
         }
       };
+
       let formIsValid = true;
       for (const inputName in updatedForm) {
         formIsValid = formIsValid && updatedForm[inputName].valid;
