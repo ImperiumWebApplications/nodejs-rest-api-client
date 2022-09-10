@@ -93,7 +93,7 @@ class Feed extends Component {
         console.log(resData);
         this.setState({
           posts: resData.data.getPosts.posts,
-          totalPosts: resData.data.getPosts.totalI,
+          totalPosts: resData.data.getPosts.totalPosts,
           postsLoading: false,
         });
       })
@@ -196,8 +196,28 @@ class Feed extends Component {
           console.log(resData.errors);
           throw new Error("Post creation failed!");
         }
+        const post = {
+          _id: resData.data.createPost._id,
+          title: resData.data.createPost.title,
+          content: resData.data.createPost.content,
+          creator: resData.data.createPost.creator,
+          createdAt: resData.data.createPost.createdAt,
+        };
         this.setState((prevState) => {
+          let updatedPosts = [...prevState.posts];
+          if (prevState.editPost) {
+            const postIndex = prevState.posts.findIndex(
+              (p) => p._id === prevState.editPost._id
+            );
+            updatedPosts[postIndex] = post;
+          } else if (updatedPosts.length >= 2) {
+            updatedPosts.pop();
+            updatedPosts.unshift(post);
+          } else {
+            updatedPosts.unshift(post);
+          }
           return {
+            posts: updatedPosts,
             isEditing: false,
             editPost: null,
             editLoading: false,
