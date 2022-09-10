@@ -150,30 +150,38 @@ class Feed extends Component {
     // Set up data (with image!)
     let url = "http://localhost:8080/graphql";
     let method = "POST";
-    if (this.state.editPost) {
-      url = "http://localhost:8080/feed/post/" + this.state.editPost._id;
-      method = "PUT";
-    }
-    const formData = new FormData();
-    formData.append("title", postData.title);
-    formData.append("content", postData.content);
-    formData.append("image", postData.image);
-    // console.log(postData)
 
-    console.log(this.props.token);
-    fetch(url, {
-      method: method,
+    const formData = new FormData();
+    formData.append("image", postData.image);
+
+    if (this.state.editPost) {
+      formData.append("oldPath", this.state.editPost.imageUrl);
+    }
+
+    fetch("http://localhost:8080/post-image", {
+      method: "PUT",
       headers: {
         Authorization: "Bearer " + this.props.token,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        query: `
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((fileResData) => {
+        const imageUrl = fileResData.filePath || "undefined";
+        return fetch(url, {
+          method: method,
+          headers: {
+            Authorization: "Bearer " + this.props.token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
           mutation {
-            createPost(postInput: {title: "${postData.title}", content: "${postData.content}", imageUrl: "something"}) {
+            createPost(postInput: {title: "${postData.title}", content: "${postData.content}", imageUrl: "${imageUrl}"}) {
               _id
               title
               content
+              imageUrl
               creator {
                 name
               }
@@ -181,8 +189,9 @@ class Feed extends Component {
             }
           }
         `,
-      }),
-    })
+          }),
+        });
+      })
       .then((res) => {
         return res.json();
       })
@@ -202,6 +211,7 @@ class Feed extends Component {
           content: resData.data.createPost.content,
           creator: resData.data.createPost.creator,
           createdAt: resData.data.createPost.createdAt,
+          imagePath: resData.data.createPost.imageUrl,
         };
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
