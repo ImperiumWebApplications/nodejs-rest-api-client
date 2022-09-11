@@ -73,8 +73,8 @@ class Feed extends Component {
       },
       body: JSON.stringify({
         query: `
-          query {
-            getPosts(page: ${page}) {
+          query GetPosts($page: Int) {
+            getPosts(page: $page) {
               posts {
                 _id
                 title
@@ -89,6 +89,9 @@ class Feed extends Component {
             }
           }
         `,
+        variables: {
+          page: page,
+        },
       }),
     })
       .then((res) => {
@@ -119,14 +122,18 @@ class Feed extends Component {
         Authorization: "Bearer " + this.props.token,
         "Content-Type": "application/json",
       },
+      // Using graphql variables
       body: JSON.stringify({
         query: `
-          mutation {
-            updateUserStatus(status: "${this.state.status}") { 
+          mutation UpdateUserStatus($status: String!) {
+            updateUserStatus(status: $status) {
               status
             }
           }
         `,
+        variables: {
+          status: this.state.status,
+        },
       }),
     })
       .then((res) => {
@@ -189,8 +196,8 @@ class Feed extends Component {
         if (this.state.editPost) {
           graphqlQuery = {
             query: `
-              mutation {
-                updatePost(id: "${this.state.editPost._id}", postInput: {title: "${postData.title}", content: "${postData.content}", imageUrl: "${imageUrl}"}) {
+              mutation UpdatePost($id: ID!, $title: String!, $content: String!, $imageUrl: String!) {
+                updatePost(id: "$id", postInput: {title: $title, content: $content, imageUrl: $imageUrl}) {
                   _id
                   title
                   content
@@ -202,12 +209,18 @@ class Feed extends Component {
                 }
               }
             `,
+            variables: {
+              id: this.state.editPost._id,
+              title: postData.title,
+              content: postData.content,
+              imageUrl: imageUrl,
+            },
           };
         } else {
           graphqlQuery = {
             query: `
-          mutation {
-            createPost(postInput: {title: "${postData.title}", content: "${postData.content}", imageUrl: "${imageUrl}"}) {
+          mutation CreatePost($title: String!, $content: String!, $imageUrl: String!) {
+            createPost(postInput: {title: $title, content: $content, imageUrl: $imageUrl}) {
               _id
               title
               content
@@ -219,6 +232,11 @@ class Feed extends Component {
             }
           }
         `,
+            variables: {
+              title: postData.title,
+              content: postData.content,
+              imageUrl: imageUrl,
+            },
           };
         }
         return fetch(url, {
@@ -309,10 +327,13 @@ class Feed extends Component {
       },
       body: JSON.stringify({
         query: `
-          mutation {
-            deletePost(id: "${postId}")
+          mutation DeletePost($id: ID!) {
+            deletePost(id: $id)
           }
         `,
+        variables: {
+          id: postId,
+        },
       }),
     })
       .then((res) => {
