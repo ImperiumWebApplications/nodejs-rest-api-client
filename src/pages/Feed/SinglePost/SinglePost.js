@@ -14,24 +14,45 @@ class SinglePost extends Component {
 
   componentDidMount() {
     const postId = this.props.match.params.postId;
-    fetch("http://localhost:8080/feed/post/" + postId, {
+    console.log('postid is', postId);
+    fetch("http://localhost:8080/graphql", {
       headers: {
         Authorization: "Bearer " + this.props.token,
+        "Content-Type": "application/json",
       },
+      method: "POST",
+      body: JSON.stringify({
+        query: `
+          query {
+            getPost(postId: "${postId}") {
+              title
+              content
+              imageUrl
+              creator {
+                name
+              }
+              createdAt
+            }
+          }
+        `,
+      }),
     })
       .then((res) => {
-        if (res.status !== 200) {
-          throw new Error("Failed to fetch status");
-        }
         return res.json();
       })
       .then((resData) => {
+        if (resData.errors) {
+          throw new Error("Fetching post failed!");
+        }
+
+        console.log('Singlepost resData', resData)
+
         this.setState({
-          title: resData.post.title,
-          author: resData.post.creator.name,
-          date: new Date(resData.post.createdAt).toLocaleDateString("en-US"),
-          content: resData.post.content,
-          image: "http://localhost:8080/" + resData.post.imageUrl,
+          title: resData.data.getPost.title,
+          author: resData.data.getPost.creator.name,
+          date: new Date(resData.data.getPost.createdAt).toLocaleDateString("en-US"),
+          content: resData.data.getPost.content,
+          image: "http://localhost:8080/" + resData.data.getPost.imageUrl,
         });
       })
       .catch((err) => {

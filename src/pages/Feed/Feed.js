@@ -90,7 +90,7 @@ class Feed extends Component {
         if (resData.errors) {
           throw new Error("User not authenticated!");
         }
-        console.log(resData);
+        console.log("posts", resData.data.getPosts.posts);
         this.setState({
           posts: resData.data.getPosts.posts,
           totalPosts: resData.data.getPosts.totalPosts,
@@ -168,13 +168,26 @@ class Feed extends Component {
       .then((res) => res.json())
       .then((fileResData) => {
         const imageUrl = fileResData.filePath || "undefined";
-        return fetch(url, {
-          method: method,
-          headers: {
-            Authorization: "Bearer " + this.props.token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        let graphqlQuery;
+        if (this.state.editPost) {
+          graphqlQuery = {
+            query: `
+              mutation {
+                updatePost(id: "${this.state.editPost._id}", postInput: {title: "${postData.title}", content: "${postData.content}", imageUrl: "${imageUrl}"}) {
+                  _id
+                  title
+                  content
+                  imageUrl
+                  creator {
+                    name
+                  }
+                  createdAt
+                }
+              }
+            `,
+          };
+        } else {
+          graphqlQuery = {
             query: `
           mutation {
             createPost(postInput: {title: "${postData.title}", content: "${postData.content}", imageUrl: "${imageUrl}"}) {
@@ -189,7 +202,15 @@ class Feed extends Component {
             }
           }
         `,
-          }),
+          };
+        }
+        return fetch(url, {
+          method: method,
+          headers: {
+            Authorization: "Bearer " + this.props.token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(graphqlQuery),
         });
       })
       .then((res) => {
@@ -205,14 +226,26 @@ class Feed extends Component {
           console.log(resData.errors);
           throw new Error("Post creation failed!");
         }
-        const post = {
-          _id: resData.data.createPost._id,
-          title: resData.data.createPost.title,
-          content: resData.data.createPost.content,
-          creator: resData.data.createPost.creator,
-          createdAt: resData.data.createPost.createdAt,
-          imagePath: resData.data.createPost.imageUrl,
-        };
+        let post;
+        if (this.state.editPost) {
+          post = {
+            _id: resData.data.updatePost._id,
+            title: resData.data.updatePost.title,
+            content: resData.data.updatePost.content,
+            creator: resData.data.updatePost.creator,
+            createdAt: resData.data.updatePost.createdAt,
+            imagePath: resData.data.updatePost.imageUrl,
+          };
+        } else {
+          post = {
+            _id: resData.data.createPost._id,
+            title: resData.data.createPost.title,
+            content: resData.data.createPost.content,
+            creator: resData.data.createPost.creator,
+            createdAt: resData.data.createPost.createdAt,
+            imagePath: resData.data.createPost.imageUrl,
+          };
+        }
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
           if (prevState.editPost) {
