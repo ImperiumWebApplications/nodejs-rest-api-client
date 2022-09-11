@@ -66,13 +66,17 @@ class App extends Component {
       },
       body: JSON.stringify({
         query: `
-          query {
-            login(email: "${authData.email}", password: "${authData.password}") {
+          query Login($email: String!, $password: String!) {
+            login(email: $email, password: $password) {
               userId
               token
             }
           }
         `,
+        variables: {
+          email: authData.email,
+          password: authData.password,
+        },
       }),
     })
       .then((res) => {
@@ -121,13 +125,18 @@ class App extends Component {
       method: "POST",
       body: JSON.stringify({
         query: `
-          mutation {
-            signup(email: "${authData.signupForm.email.value}", name: "${authData.signupForm.name.value}", password: "${authData.signupForm.password.value}") {
+          mutation Signup($email: String!, $name: String!, $password: String!) {
+            signup(email: $email, name: $name, password: $password) {
               _id
               email
             }
           }
         `,
+        variables: {
+          email: authData.signupForm.email.value,
+          name: authData.signupForm.name.value,
+          password: authData.signupForm.password.value,
+        },
       }),
 
       headers: {
