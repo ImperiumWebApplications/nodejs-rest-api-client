@@ -283,15 +283,18 @@ class Feed extends Component {
         }
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
+          let updatedTotalPosts = prevState.totalPosts;
           if (prevState.editPost) {
             const postIndex = prevState.posts.findIndex(
               (p) => p._id === prevState.editPost._id
             );
             updatedPosts[postIndex] = post;
           } else if (updatedPosts.length >= 2) {
+            updatedTotalPosts++;
             updatedPosts.pop();
             updatedPosts.unshift(post);
           } else {
+            updatedTotalPosts++;
             updatedPosts.unshift(post);
           }
           return {
@@ -299,6 +302,7 @@ class Feed extends Component {
             isEditing: false,
             editPost: null,
             editLoading: false,
+            totalPosts: updatedTotalPosts,
           };
         });
       })
@@ -343,10 +347,12 @@ class Feed extends Component {
         if (resData.errors) {
           throw new Error("Deleting a post failed!");
         }
-        this.setState({
-          postsLoading: false,
-          posts: this.state.posts.filter((p) => p._id !== postId),
-        });
+        // this.setState({
+        //   postsLoading: false,
+        //   posts: this.state.posts.filter((p) => p._id !== postId),
+        // });
+        this.loadPosts();
+
         console.log(resData);
       })
       .catch((err) => {
